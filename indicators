@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 def ED(graph):
-    ed = 0
+	ed = 0
     nodos = graph.number_of_nodes()
     s = 0
     for i, j, weight in graph.edges.data('weight'):
@@ -14,8 +14,39 @@ def ED(graph):
     return ed
 
 def Strength(graph):
-     #calculcate sum of weights for all edges in graph
+   
     s = 0
     s = graph.degree(weight = "weight")
     strenght = np.mean([degree[1] for degree in s])
     return strenght
+
+def Triplets(graph, node):
+    triplets = []
+    for neighbor in graph.adj[node]:
+        for adj in graph.adj[neighbor]:
+            if adj in graph.adj[node]:
+                triplet = {node, neighbor, adj}
+                if triplet not in triplets:
+                    triplets.append(triplet)
+    return [list(triplet) for triplet in triplets]
+
+def CC(graph):
+
+    cc = []
+    
+    for node in graph.nodes:
+        tri = Triplets(graph, node) 
+        if tri:
+            wij_wjk = 0
+            for triplets in tri:  
+                wij_wjk += graph[triplets.pop(triplets.index(node))][triplets[0]]["weight"] + graph[triplets[0]][triplets[1]]["weight"]
+            
+            cc.append(wij_wjk/( 2 * graph.degree(weight = "weight", nbunch=node) * ((graph.degree(nbunch=node) - 1))))
+
+        else:
+            cc.append(0)
+    return np.mean(cc)
+
+def NND(graph):
+    nnd = list(nx.average_neighbor_degree(graph, weight = "weight").values())
+    return np.mean(nnd)
