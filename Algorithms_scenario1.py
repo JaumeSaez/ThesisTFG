@@ -11,7 +11,8 @@ from helpers import distance
 import networkx as nx
 import csv
 import cdlib
-from cdlib import algorithms
+from cdlib import algorithms, readwrite
+
 
 
 
@@ -67,12 +68,21 @@ while count < len(time_df):
 
 
 c=0
+comunity = []
 while c<len(graph):
     co = 0
     while co < len(graph[c]):
 
         G.add_weighted_edges_from([(graph[c][co])])
-        coms = algorithms.condor(G)
+
         
         co+=1
+
+    
+    com = algorithms.louvain(G)
+    readwrite.write_community_json(com, "communitieslouvian.json")
+
+    readwrite.write_community_csv(com, "communities.csv", ",")
+
+    
     c+=1
