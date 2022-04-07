@@ -65,14 +65,15 @@ while count < len(time_df):
     
     c=0
     G=nx.Graph()
-    while c<len(graph[0]):
+    while c<len(graph[count]):
+        G.add_weighted_edges_from([(graph[count][c])])
         
-        G.add_weighted_edges_from([(graph[0][c])])
+        
         c+=1
     print(G.edges.data('weight'))
-    #com = algorithms.louvain(G)
-    #readwrite.write_community_json(com, "communitieslouvian.json")
+    com = algorithms.louvain(G)
+    readwrite.write_community_json(com, "communitieslouvian.json")
 
-    #readwrite.write_community_csv(com, "communities.csv", ",")
+    readwrite.write_community_csv(com, "communities.csv", ",")
 
     count = count + 1
