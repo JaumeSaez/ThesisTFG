@@ -12,6 +12,7 @@ import networkx as nx
 import csv
 import cdlib
 from cdlib import algorithms, readwrite
+import json
 
 
 
@@ -61,19 +62,22 @@ while count < len(time_df):
     
     
     graph.append(gra)
-    print(time_df[count])
+    #print(time_df[count])
     
     c=0
     G=nx.Graph()
+    #print(graph)
     while c<len(graph[count]):
         G.add_weighted_edges_from([(graph[count][c])])
         
         
         c+=1
-    print(G.edges.data('weight'))
+    #print(G.edges.data('weight'))
     com = algorithms.louvain(G)
-    readwrite.write_community_json(com, "communitieslouvian.json")
+    comunities = str(time_df[count])
+    comunities = comunities+".json"
 
-    readwrite.write_community_csv(com, "communities.csv", ",")
+    readwrite.write_community_json(com, comunities)
+    
 
     count = count + 1
