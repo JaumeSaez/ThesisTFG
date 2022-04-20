@@ -13,7 +13,7 @@ import csv
 import cdlib
 from cdlib import algorithms, readwrite
 import json
-
+from cdlib import TemporalClustering
 
 
 
@@ -41,14 +41,15 @@ def add_edge(ac1_id, ac1_lat, ac1_lon, ac2_id, ac2_lat, ac2_lon,edge):
 
     return edge
 
+
+
 df = pd.read_csv('data_scenario3.csv', sep=",")
-
-
 time_df = df['time '].unique()
 #print(len(time_df))
 count = 0
 edge = []
 graph = []
+tc = TemporalClustering()
 while count < len(time_df):
     sub_df = df.loc[(df['time '] == time_df[count])]
     alt_df_numpy = sub_df.to_numpy()
@@ -60,24 +61,28 @@ while count < len(time_df):
                 gra= add_edge(position1[1],position1[3],position1[4],position2[1],position2[3],position2[4],edge)
     edge = []
     
-    
     graph.append(gra)
     #print(time_df[count])
-    
     c=0
     G=nx.Graph()
     #print(graph)
     while c<len(graph[count]):
         G.add_weighted_edges_from([(graph[count][c])])
         
-        
         c+=1
     #print(G.edges.data('weight'))
     com = algorithms.louvain(G)
-    comunities = str(time_df[count])
-    comunities = comunities+".json"
+    tc.add_clustering(com, time_df[count])
 
-    readwrite.write_community_json(com, comunities)
     
-
+    #comunities = str(time_df[count])
+    #comunities = comunities+".json"
+    #readwrite.write_community_json(com, comunities)
+    
     count = count + 1
+
+result = tc.get_observation_ids()
+
+
+print(result)
+print("fin")
