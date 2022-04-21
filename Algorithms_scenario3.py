@@ -14,6 +14,18 @@ import cdlib
 from cdlib import algorithms, readwrite
 import json
 from cdlib import TemporalClustering
+import json
+from json import dumps
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 
 
@@ -41,6 +53,15 @@ def add_edge(ac1_id, ac1_lat, ac1_lon, ac2_id, ac2_lat, ac2_lon,edge):
 
     return edge
 
+def default(o):
+   try:
+       iterable = iter(o)
+   except TypeError:
+       pass
+   else:
+       return list(iterable)
+   # Let the base class default method raise the TypeError
+   return json.JSONEncoder.default(o)
 
 
 df = pd.read_csv('data_scenario3.csv', sep=",")
@@ -82,6 +103,14 @@ while count < len(time_df):
     count = count + 1
 
 result = tc.get_observation_ids()
+#result2 = json.loads(json.dumps(tc))
+out_file = open("myfile.json", "w")
+  
+json.dump(tc, out_file)
+  
+out_file.close()
+
+
 
 
 print(result)
