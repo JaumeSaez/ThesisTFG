@@ -43,8 +43,8 @@ def add_edge(ac1_id, ac1_lat, ac1_lon, ac2_id, ac2_lat, ac2_lon,edge):
 
     return edge
 
-
-df = pd.read_csv('data_scenario3.csv', sep=",")
+text = 'data_scenario3.csv'
+df = pd.read_csv(text, sep=",")
 time_df = df['time '].unique()
 #print(len(time_df))
 count = 0
@@ -121,5 +121,3 @@ for match in matches:
 
 
 print(results)
-
-print("fin")
