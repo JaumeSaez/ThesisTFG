@@ -17,16 +17,6 @@ from cdlib import TemporalClustering
 import json
 from json import dumps
 
-class NpEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        if isinstance(obj, np.floating):
-            return float(obj)
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return super(NpEncoder, self).default(obj)
-
 
 
 
@@ -52,16 +42,6 @@ def add_edge(ac1_id, ac1_lat, ac1_lon, ac2_id, ac2_lat, ac2_lon,edge):
     edge.append(ed)
 
     return edge
-
-def default(o):
-   try:
-       iterable = iter(o)
-   except TypeError:
-       pass
-   else:
-       return list(iterable)
-   # Let the base class default method raise the TypeError
-   return json.JSONEncoder.default(o)
 
 
 df = pd.read_csv('data_scenario3.csv', sep=",")
@@ -103,15 +83,43 @@ while count < len(time_df):
     count = count + 1
 
 result = tc.get_observation_ids()
-#result2 = json.loads(json.dumps(tc))
-out_file = open("myfile.json", "w")
-  
-json.dump(tc, out_file)
-  
-out_file.close()
 
 
+for r in result:
+    comunities = tc.get_clustering_at(r)
+    #print(comunities)
+
+jaccard = lambda x, y:  len(set(x) & set(y)) / len(set(x) | set(y))
+matches = tc.community_matching(jaccard, two_sided=True)
+
+time = 10
+results={}
+for match in matches:
+    # match (ti_cid,tj_cid,score)
+    c1 = match[0]
+    c2 = match[1]
+    score = match[2]
+
+    if score == 1.0:
+        t1, idx1 = c1.split("_")
+        t2, idx2 = c2.split("_")
+        community = tc.get_community(c1)
+        community = tuple(community)
+        #print(community2,len(community2))
+        if len(community) > 1:
+            
+            if (community) in results.keys():
+                curr_start_time, curr_end_time = results[community]
+                t2 = int(t2)
+                if t2 == (curr_end_time + time): #check if they are consecutive e.g. from 10, 20
+
+                    results[community] = (curr_start_time, t2) #update the entry to have new end time
+
+                
+            else:
+                results[community] = (int(t1),int(t2))
 
 
-print(result)
+print(results)
+
 print("fin")
