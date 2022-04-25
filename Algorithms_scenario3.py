@@ -42,82 +42,82 @@ def add_edge(ac1_id, ac1_lat, ac1_lon, ac2_id, ac2_lat, ac2_lon,edge):
     edge.append(ed)
 
     return edge
-
-text = 'data_scenario3.csv'
-df = pd.read_csv(text, sep=",")
-time_df = df['time '].unique()
-#print(len(time_df))
-count = 0
-edge = []
-graph = []
-tc = TemporalClustering()
-while count < len(time_df):
-    sub_df = df.loc[(df['time '] == time_df[count])]
-    alt_df_numpy = sub_df.to_numpy()
-    G = nx.Graph()
-    for position1 in alt_df_numpy:
-        for position2 in alt_df_numpy:
-            if position1[1] != position2[1]:
-                #print(position1[1],position1[3],position1[4],position2[1],position2[3],position2[4])
-                gra= add_edge(position1[1],position1[3],position1[4],position2[1],position2[3],position2[4],edge)
+co = 0
+while co < 10:
+    co += 1
+    text = 'data_' + str(co) + '.csv'
+    df = pd.read_csv(text, sep=",")
+    time_df = df['time '].unique()
+    #print(len(time_df))
+    count = 0
     edge = []
-    
-    graph.append(gra)
-    #print(time_df[count])
-    c=0
-    G=nx.Graph()
-    #print(graph)
-    while c<len(graph[count]):
-        G.add_weighted_edges_from([(graph[count][c])])
+    graph = []
+    tc = TemporalClustering()
+    while count < len(time_df):
+        sub_df = df.loc[(df['time '] == time_df[count])]
+        alt_df_numpy = sub_df.to_numpy()
+        G = nx.Graph()
+        for position1 in alt_df_numpy:
+            for position2 in alt_df_numpy:
+                if position1[1] != position2[1]:
+                    #print(position1[1],position1[3],position1[4],position2[1],position2[3],position2[4])
+                    gra= add_edge(position1[1],position1[3],position1[4],position2[1],position2[3],position2[4],edge)
+        edge = []
         
-        c+=1
-    #print(G.edges.data('weight'))
-    com = algorithms.louvain(G)
-    tc.add_clustering(com, time_df[count])
-
-    
-    #comunities = str(time_df[count])
-    #comunities = comunities+".json"
-    #readwrite.write_community_json(com, comunities)
-    
-    count = count + 1
-
-result = tc.get_observation_ids()
-
-
-for r in result:
-    comunities = tc.get_clustering_at(r)
-    #print(comunities)
-
-jaccard = lambda x, y:  len(set(x) & set(y)) / len(set(x) | set(y))
-matches = tc.community_matching(jaccard, two_sided=True)
-
-time = 10
-results={}
-for match in matches:
-    # match (ti_cid,tj_cid,score)
-    c1 = match[0]
-    c2 = match[1]
-    score = match[2]
-
-    if score == 1.0:
-        t1, idx1 = c1.split("_")
-        t2, idx2 = c2.split("_")
-        community = tc.get_community(c1)
-        community = tuple(community)
-        #print(community2,len(community2))
-        if len(community) > 1:
+        graph.append(gra)
+        #print(time_df[count])
+        c=0
+        G=nx.Graph()
+        #print(graph)
+        while c<len(graph[count]):
+            G.add_weighted_edges_from([(graph[count][c])])
             
-            if (community) in results.keys():
-                curr_start_time, curr_end_time = results[community]
-                t2 = int(t2)
-                if t2 == (curr_end_time + time): #check if they are consecutive e.g. from 10, 20
+            c+=1
+        #print(G.edges.data('weight'))
+        com = algorithms.louvain(G)
+        tc.add_clustering(com, time_df[count])
 
-                    results[community] = (curr_start_time, t2) #update the entry to have new end time
+        
+        #comunities = str(time_df[count])
+        #comunities = comunities+".json"
+        #readwrite.write_community_json(com, comunities)
+        
+        count = count + 1
 
+    result = tc.get_observation_ids()
+
+
+    for r in result:
+        comunities = tc.get_clustering_at(r)
+        #print(comunities)
+
+    jaccard = lambda x, y:  len(set(x) & set(y)) / len(set(x) | set(y))
+    matches = tc.community_matching(jaccard, two_sided=True)
+
+    time = 10
+    results={}
+    for match in matches:
+        # match (ti_cid,tj_cid,score)
+        c1 = match[0]
+        c2 = match[1]
+        score = match[2]
+
+        if score == 1.0:
+            t1, idx1 = c1.split("_")
+            t2, idx2 = c2.split("_")
+            community = tc.get_community(c1)
+            community = tuple(community)
+            #print(community2,len(community2))
+            if len(community) > 1:
                 
-            else:
-                results[community] = (int(t1),int(t2))
+                if (community) in results.keys():
+                    curr_start_time, curr_end_time = results[community]
+                    t2 = int(t2)
+                    if t2 == (curr_end_time + time): #check if they are consecutive e.g. from 10, 20
 
+                        results[community] = (curr_start_time, t2) #update the entry to have new end time
 
-print(results)
+                    
+                else:
+                    results[community] = (int(t1),int(t2))
+    print("Results of "+ text+ " : ",results)
