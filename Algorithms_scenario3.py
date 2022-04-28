@@ -16,6 +16,7 @@ import json
 from cdlib import TemporalClustering
 import json
 from json import dumps
+import indicators as i
 
 
 
@@ -42,7 +43,7 @@ def add_edge(ac1_id, ac1_lat, ac1_lon, ac2_id, ac2_lat, ac2_lon,edge):
     edge.append(ed)
 
     return edge
-co = 0
+co = 9
 while co < 10:
     co += 1
     text = 'data_' + str(co) + '.csv'
@@ -96,6 +97,7 @@ while co < 10:
 
     time = 10
     results={}
+    
     for match in matches:
         # match (ti_cid,tj_cid,score)
         c1 = match[0]
@@ -107,7 +109,6 @@ while co < 10:
             t2, idx2 = c2.split("_")
             community = tc.get_community(c1)
             community = tuple(community)
-            #print(community2,len(community2))
             if len(community) > 1:
                 
                 if (community) in results.keys():
@@ -121,3 +122,45 @@ while co < 10:
                 else:
                     results[community] = (int(t1),int(t2))
     print("Results of "+ text+ " : ",results)
+    print(results.keys())
+    complexity = list(results.keys())
+    times = list(results.values())
+    complex = str(complexity[0]).replace('(', '[').replace(')',']').replace(' ,', '')
+    data_type = int 
+    res = [ele for ele in complexity if not isinstance(ele, data_type)]
+
+    cos = 0
+    while cos < len (res):
+        counts = (int(times[cos][0]/10))
+        cots = 0
+        edges = []
+        graphs = []
+        while counts <= (int(times[cos][1]/10)):
+            sub_df = df.loc[(df['time '] == time_df[counts])]
+            alt_df_numpy = sub_df.to_numpy()
+            I = nx.Graph()
+            for position1 in alt_df_numpy:
+                for position2 in alt_df_numpy:
+                    if position1[1] != position2[1]:
+                        #print(position1[1],position1[3],position1[4],position2[1],position2[3],position2[4])
+                        gra = []
+                        gra= gra + add_edge(position1[1],position1[3],position1[4],position2[1],position2[3],position2[4],edges)                    
+            edges = []
+            graphs.append(gra)
+            cot=0
+            #cots = 0           
+            I=nx.Graph()
+            while cot < len(graphs[cots]):
+                I.add_weighted_edges_from([(graphs[cots][cot])])
+                cot+=1
+            
+            a = []
+            b = 0
+            while b < len(res[cos]):
+                a.append(res[cos][b])
+                b += 1
+            H = I.subgraph(a)
+            print ("-------------------","\n","in time ",time_df[counts],"the comunity ",res[cos],"\n"," ED is: ", i.ED(H), " Strength is: ", i.Strength(H), " CC is: ",i.CC(H)," NND is: " ,i.NND(H))
+            cots += 1
+            counts += 1
+        cos += 1
