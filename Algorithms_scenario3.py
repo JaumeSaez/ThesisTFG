@@ -5,6 +5,7 @@ Created on Sun Apr  3 17:01:34 2022
 @author: Jaume
 """
 
+
 import pandas as pd
 import numpy as np
 from helpers import distance
@@ -43,11 +44,11 @@ def add_edge(ac1_id, ac1_lat, ac1_lon, ac2_id, ac2_lat, ac2_lon,edge):
     edge.append(ed)
 
     return edge
-co = 9
-while co < 10:
+co = 10
+while co < 11:
     co += 1
     text = 'data_' + str(co) + '.csv'
-    df = pd.read_csv(text, sep=",")
+    df = pd.read_csv('data_scenario3.csv', sep=",")
     time_df = df['time '].unique()
     #print(len(time_df))
     count = 0
@@ -160,7 +161,10 @@ while co < 10:
                 a.append(res[cos][b])
                 b += 1
             H = I.subgraph(a)
-            print ("-------------------","\n","in time ",time_df[counts],"the comunity ",res[cos],"\n"," ED is: ", i.ED(H), " Strength is: ", i.Strength(H), " CC is: ",i.CC(H)," NND is: " ,i.NND(H))
+            print ("-------------------","\n","in time ",time_df[counts],"the comunity ",res[cos],
+            "\n"," ED is: ", i.ED(H), " Strength is: ", i.Strength(H), " CC is: ",i.CC(H)," NND is: " ,i.NND(H),
+            "\n","-------------------","\n","in time ",time_df[counts],"the complexity of sector is: ",
+            "\n"," ED is: ", i.ED(I), " Strength is: ", i.Strength(I), " CC is: ",i.CC(I)," NND is: " ,i.NND(I))
             cots += 1
             counts += 1
         cos += 1
