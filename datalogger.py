@@ -1,5 +1,6 @@
 import csv
 import os
+from tkinter import INSIDE
 import numpy as np 
 import datetime as datetime
 import bluesky as bs
@@ -7,8 +8,10 @@ from bluesky.core import varexplorer as ve
 from bluesky.traffic.asas import detection
 import networkx as nx
 from bluesky import traffic
-from bluesky.tools import geo
+from bluesky.tools import geo, areafilter
 from bluesky.tools.aero import vcasormach, nm, casormach2tas, tas2cas, ft
+#from sector_LECM import Sector
+dintre = []
 class Logger():
 	"""
 	Data logger class
@@ -231,19 +234,59 @@ class Logger():
 		# update aircraft ids
 		if self.id_dynamic:
 			self.__update_acids()
+		#print(self.__update_acids())
 
 		aircraft_data = []
+		
+		Sector = ([43.7194442749023,-2.16583347320557,43.6833343505859,-2.06666660308838,
+43.6672248840332,-2.02138876914978,43.6463890075684,-1.96250009536743,43.5833320617676,
+-1.78333330154419,43.4316673278809,-1.78416669368744,43.3833351135254,-1.78333330154419,
+43.3549995422363,-1.7402777671814,43.3138885498047,-1.72111117839813,43.2908325195312,
+-1.61805558204651,43.2633323669434,-1.5797221660614,43.2919425964355,-1.51361107826233,
+43.2838897705078,-1.4913889169693,43.2874984741211,-1.46666669845581,43.0816650390625,
+-1.47000002861023,43.0499992370605,-1.33333337306976,43.0091667175293,-1.10805559158325,
+42.9727783203125,-0.97916662693024,42.9319458007812,-0.84444445371628,42.8963890075684,
+-0.72777777910233,42.8772201538086,-0.67916667461395,42.875,-0.65694439411163,42.823055267334,
+-0.48111110925674,42.7522239685059,-0.99777781963348,42.4599990844727,-1.24583339691162,41.3819427490234,
+-2.1358335018158,41.0347213745117,-2.4219446182251,41.033332824707,-2.5,41.033332824707,-2.83333325386047,41.3030548095703,-2.8486111164093,40.9944458007812,-3.51111102104187,40.9330558776855,-3.64111089706421,
+40.9949989318848,-3.83527779579163,41.0611114501953,-4.04527759552002,41.2216682434082,-4.5527777671814,
+41.2641677856445,-4.68694448471069,41.3708305358887,-4.65750026702881,42.1363906860352,-4.43249988555908,
+42.3333320617676,-4.375,42.3513870239258,-4.93916654586792,42.3705520629883,-5.67749977111816,
+42.9655570983887,-5.25833320617676,43.404167175293,-4.94500017166138,44.3758316040039,-4.23138904571533,
+44.3330535888672,-4,44.2658348083496,-3.79250001907349,44.0513877868652,-3.15027785301209,43.9486122131348,
+-2.84027767181397,43.9141693115234,-2.73861122131348,43.9000015258789,-2.69861125946045,43.8388862609863
+,-2.51944446563721,43.7194442749023,-2.16583347320557])
 
-        
+		areafilter.defineArea('Sector_CRIDA', 'POLY',Sector)
+		#inside = areafilter.checkInside('Sector', bs.traf.lat, bs.traf.lon)
+		#dintre.append(inside)
+		#print(dintre)
+		
+		if areafilter.hasArea('Sector_CRIDA'):
+			ownship = bs.traf
+			inside = areafilter.checkInside('Sector_CRIDA', ownship.lat, ownship.lon,ownship.alt)
+
+			#print(ownship.id,inside)
+			
+		index = 0
+		b = []
+		for i in inside:
+			if i ==True:
+				b.append(index)
+			index +=1
+		#print(b)
+		#for idx in sorted(b, reverse = True):
+			#del ownship.idd[idx]
+		#print(ownship.id)
 		for variable in self.variables:
-       
+			
 			try:
 				aircraft_data.append(getattr(bs.traf, variable))
 
 			except AttributeError:
 				print(f"The variable {variable} does not exist")
 				#exit()
-		#print(aircraft_data)
+		
                 
 
 		# Extract conflict pairs and add them to each record
@@ -265,7 +308,7 @@ class Logger():
 
 		#aircraft_data.append(comp_data)
 
-		return aircraft_data
+		return aircraft_data,b
 
 	def log(self):
 		"""
@@ -279,16 +322,26 @@ class Logger():
 			self.tlog += self.dt
 
 			# Create the new row to log and log it
-			new_data = self.__extract_data()
+			new_data,lista = self.__extract_data()
 
+			#print(new_data[0],new_data[1],new_data[2])
+			#for idx in sorted(lista, reverse = True):
+				#del aircraft_id[idx]
+			#print(inside,aircraft_data)
+			
 			for aircraft_id in self.aircrafts_id:
 
 				aircraft_index = self.aircrafts_id.index(aircraft_id)
+				if aircraft_index in lista:
+				#print(lista)
+				#for idx in sorted(lista, reverse = True):
+					#del aircraft_index[idx]
+				#print(aircraft_index)
 
-				new_row = [bs.sim.simt, aircraft_id]
-				[new_row.append(new_data[i][aircraft_index]) for i, val in enumerate(new_data)]
+					new_row = [bs.sim.simt, aircraft_id]
+					[new_row.append(new_data[i][aircraft_index]) for i, val in enumerate(new_data)]
 
-				self.csv_writer.writerow(new_row)
+					self.csv_writer.writerow(new_row)
 	
 	def stop(self):
 		"""
